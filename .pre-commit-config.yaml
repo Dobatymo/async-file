@@ -1,0 +1,63 @@
+repos:
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v5.0.0
+  hooks:
+  - id: check-added-large-files
+  - id: check-case-conflict
+  - id: check-json
+  - id: check-merge-conflict
+  - id: check-symlinks
+  - id: check-toml
+  - id: check-yaml
+  - id: debug-statements
+  - id: detect-private-key
+  - id: end-of-file-fixer
+  - id: mixed-line-ending
+  - id: pretty-format-json
+    args: [--autofix, --no-ensure-ascii]
+  - id: requirements-txt-fixer
+  - id: trailing-whitespace
+    args: [--markdown-linebreak-ext=md]
+- repo: local
+  hooks:
+  - id: disallow-absolute-paths
+    name: disallow absolute paths
+    entry: (?i)\b[a-z]:[\/\\][^<>*\"|?]+
+    language: pygrep
+- repo: https://github.com/macisamuele/language-formatters-pre-commit-hooks
+  rev: v2.14.0
+  hooks:
+  - id: pretty-format-yaml
+    args: [--autofix]
+- repo: https://github.com/tox-dev/pyproject-fmt
+  rev: v2.6.0
+  hooks:
+  - id: pyproject-fmt
+- repo: https://github.com/asottile/pyupgrade
+  rev: v3.20.0
+  hooks:
+  - id: pyupgrade
+    args: [--py312-plus]
+- repo: https://github.com/astral-sh/ruff-pre-commit
+  rev: v0.11.11
+  hooks:
+  - id: ruff-check
+    args: [--fix]
+  - id: ruff-format
+- repo: https://github.com/PyCQA/bandit
+  rev: 1.8.3
+  hooks:
+  - id: bandit
+    args: [-c, pyproject.toml]
+    additional_dependencies: ['.[toml]']
+- repo: https://github.com/pre-commit/mirrors-mypy
+  rev: v1.15.0
+  hooks:
+  - id: mypy
+    args: [--install-types, --non-interactive, --show-error-codes, --show-traceback]
+    additional_dependencies:
+    - rich==14.0.0
+- repo: https://github.com/Yelp/detect-secrets
+  rev: v1.5.0
+  hooks:
+  - id: detect-secrets
