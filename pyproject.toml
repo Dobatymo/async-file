@@ -9,6 +9,7 @@ description = "A Python module for asynchronous file handling"
 authors = [ { name = "Dobatymo" } ]
 requires-python = ">=3.12"
 classifiers = [
+  "Operating System :: Microsoft :: Windows",
   "Programming Language :: Python :: 3 :: Only",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
@@ -48,3 +49,6 @@ warn_unused_configs = true
 warn_unused_ignores = true
 warn_unreachable = true
 strict_equality = true
+
+[tool.bandit]
+skips = [ "B101" ]

@@ -1,17 +1,17 @@
-import unittest
 import asyncio
+import unittest
 
 from async_file import async_file
 
+
 class MyIsolatedAsyncioTestCase(unittest.IsolatedAsyncioTestCase):
     def _setupAsyncioRunner(self):
-        assert self._asyncioRunner is None, 'asyncio runner is already initialized'
+        assert self._asyncioRunner is None, "asyncio runner is already initialized"
         runner = asyncio.Runner(debug=True, loop_factory=async_file.MyProactorEventLoop)
         self._asyncioRunner = runner
 
 
 class AsyncFileTest(MyIsolatedAsyncioTestCase):
-    
     async def test_read_write(self):
         path = "async-file-test.txt"
 

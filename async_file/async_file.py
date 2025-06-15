@@ -5,9 +5,11 @@ from _overlapped import Overlapped
 from _winapi import NULL
 from asyncio.windows_events import IocpProactor
 from asyncio.windows_utils import PipeHandle
-from collections.abc import AsyncIterator, Buffer
+from collections.abc import AsyncIterator, Awaitable, Buffer, Callable
+from typing import Any, TypeAlias
 
 ERROR_HANDLE_EOF = 38
+FinishSocketFunc: TypeAlias = Callable[[Any, Any, Overlapped], Any]
 
 
 class AsyncFile:
@@ -69,7 +71,12 @@ class OVERLAPPED(ctypes.Structure):
 
 
 class MyIocpProactor(asyncio.IocpProactor):
-    def read_into(self, conn: PipeHandle, buf: Buffer, offset: int = 0) -> int:
+    finish_socket_func: FinishSocketFunc
+    _register_with_iocp: Callable[[PipeHandle], None]
+    _result: Callable[[int], Awaitable[int]]
+    _register: Callable[[Overlapped, PipeHandle, FinishSocketFunc], Awaitable[int]]
+
+    def read_into(self, conn: PipeHandle, buf: Buffer, offset: int = 0) -> Awaitable[int]:
         self._register_with_iocp(conn)
         ov = Overlapped(NULL)
         overlapped_ptr = ctypes.cast(ov.address, ctypes.POINTER(OVERLAPPED))
@@ -83,7 +90,7 @@ class MyIocpProactor(asyncio.IocpProactor):
 
         return self._register(ov, conn, self.finish_socket_func)
 
-    def write(self, conn: PipeHandle, buf: Buffer, offset: int = 0) -> int:
+    def write(self, conn: PipeHandle, buf: Buffer, offset: int = 0) -> Awaitable[int]:
         self._register_with_iocp(conn)
         ov = Overlapped(NULL)
         overlapped_ptr = ctypes.cast(ov.address, ctypes.POINTER(OVERLAPPED))
@@ -96,6 +103,8 @@ class MyIocpProactor(asyncio.IocpProactor):
 
 
 class MyProactorEventLoop(asyncio.ProactorEventLoop):
+    _proactor: MyIocpProactor
+
     def __init__(self, proactor: IocpProactor | None = None) -> None:
         if proactor is None:
             proactor = MyIocpProactor()
@@ -135,6 +144,7 @@ class MyProactorEventLoop(asyncio.ProactorEventLoop):
 
 async def open(path: str, mode: str = "rb") -> AsyncFile:
     loop = asyncio.get_running_loop()
+    assert isinstance(loop, MyProactorEventLoop)  # for mypy
 
     file = await loop.file_open(path)
     return AsyncFile(file, loop=loop)
@@ -142,6 +152,7 @@ async def open(path: str, mode: str = "rb") -> AsyncFile:
 
 async def readall(path: str, chunk_size: int) -> int:
     loop = asyncio.get_running_loop()
+    assert isinstance(loop, MyProactorEventLoop)  # for mypy
 
     file = await loop.file_open(path)
     num_chunks = 0
