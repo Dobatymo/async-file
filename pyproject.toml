@@ -6,6 +6,9 @@ requires = [ "setuptools", "wheel" ]
 name = "async-file"
 version = "0.1.0"
 description = "A Python module for asynchronous file handling"
+readme = "readme.md"
+license = "MIT"
+
 authors = [ { name = "Dobatymo" } ]
 requires-python = ">=3.12"
 classifiers = [
